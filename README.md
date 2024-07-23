@@ -3,7 +3,7 @@
 ![Informfully](https://raw.githubusercontent.com/Informfully/Documentation/main/docs/source/img/logo_banner.png)
 
 Welcome to [Informfully](https://informfully.ch/)!
-Informfully is a open-source reproducibility platform for content distribution and user experiments.
+Informfully is an open-source reproducibility platform for content distribution and user experiments.
 
 To view the full documentation, please visit [Informfully at Read the Docs](https://informfully.readthedocs.io/).
 It is the combined documentation for all [code repositories](https://github.com/orgs/Informfully/repositories).
@@ -46,7 +46,7 @@ If you use any Informfully code/repository in a scientific publication, we ask y
   ```
 
 ## Contributing
-Your are welcome to contribute to the Informfully ecosystem and become a part of your cummunity. Feel free to:
+Your are welcome to contribute to the Informfully ecosystem and become a part of your community. Feel free to:
   - fork any of the [Informfully repositories](https://github.com/Informfully/Documentation) and
   - make changes and create pull requests.
 
