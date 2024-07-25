@@ -12,10 +12,11 @@ It is the combined documentation for all [code repositories](https://github.com/
 
 ## Documentation (WIP)
 
-IDEA - Informfully Dataset with Enhanced Attributes
+Publication: [IDEA - Informfully Dataset with Enhanced Attributes](TBD)
 
-- [Codebook](TBD)
-- [Technical Documentation](https://informfully.readthedocs.io/en/latest/database.html)
+Documentation: [Codebook](TBD) and [technical description](https://informfully.readthedocs.io/en/latest/database.html) of the collection.
+
+Dataset Overview:
 
 | Collection      | Description                           | # Entries |
 |-----------------|---------------------------------------|-----------|
