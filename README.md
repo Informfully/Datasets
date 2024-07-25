@@ -12,8 +12,22 @@ It is the combined documentation for all [code repositories](https://github.com/
 
 ## Documentation (WIP)
 
+IDEA - Informfully Dataset with Enhanced Attributes
+
 - [Codebook](TBD)
 - [Technical Documentation](https://informfully.readthedocs.io/en/latest/database.html)
+
+| Collection      | Description                           | # Entries |
+|-----------------|---------------------------------------|-----------|
+| Articles        | News article collection.              | *10,954*  |
+| Bookmarks       | Bookmarked news articles.             | *3,115*   |
+| Favorites       | Favorites news articles.              | *2,733*   |
+| Interactions    | Read articles by users.               | *34,890*  |
+| Ratings         | Likes and dislikes for articles.      | *28,382*  |
+| Recommendations | Daily article recommendations.        | *207,220* |
+| Survey          | Knowledge quiz answers.               | *43,078*  |
+| Users           | Profile and background information.   | *593*     |
+| Views           | Browsing and session history.         | *84,747*  |
 
 ## Citation
 If you use any Informfully code/repository in a scientific publication, we ask you to cite the following papers:
