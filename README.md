@@ -14,7 +14,7 @@ It is the combined documentation for all [code repositories](https://github.com/
 
 Publication: [IDEA - Informfully Dataset with Enhanced Attributes](TBD)
 
-Pre-registration: [Experiment pre-registration and documentation](https://osf.io/7jzm5)
+Pre-registration: [Experiment pre-registration](https://osf.io/7jzm5)
 
 Documentation: [Codebook](TBD) and [technical description](https://informfully.readthedocs.io/en/latest/database.html) of the collection.
 
