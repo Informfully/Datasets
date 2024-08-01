@@ -7,15 +7,16 @@ Informfully is an open-source reproducibility platform for content distribution 
 
 **Links and Resources:** [GitHub](https://github.com/orgs/Informfully) | [Website](https://informfully.ch) | [Documentation](https://informfully.readthedocs.io) | [DDIS@UZH](https://www.ifi.uzh.ch/en/ddis.html) | [Google Play](https://play.google.com/store/apps/details?id=ch.uzh.ifi.news) | [App Store](https://apps.apple.com/us/app/informfully/id1460234202)
 
-## Documentation (WIP)
+## Documentation
 
-Publication: [IDEA - Informfully Dataset with Enhanced Attributes](TBD)
+<!-- Publication: [IDEA - Informfully Dataset with Enhanced Attributes](TBD) -->
 
-Pre-registration: [Experiment pre-registration](https://osf.io/7jzm5)
+* [Dataset codebook](https://github.com/Informfully/Datasets/tree/main/IDEA/documentation) for the description of all attributed included in the dateset.
+* [Experiment pre-registration](https://osf.io/7jzm5) for all information related to the user study.
+* [Pre-processing scripts](https://github.com/Informfully/Datasets/tree/main/IDEA/scripts) used for preparing the dataset.
+* [Technical Documentation](https://informfully.readthedocs.io/en/latest/database.html) of the document collection form Informfully.
 
-Documentation: [Codebook](TBD) and [technical description](https://informfully.readthedocs.io/en/latest/database.html) of the collection.
-
-Dataset Overview:
+## Dataset
 
 | Collection      | Description                           | # Entries |
 |-----------------|---------------------------------------|-----------|
