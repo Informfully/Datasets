@@ -21,8 +21,8 @@ Informfully is an open-source reproducibility platform for content distribution 
 | Collection      | Description                           | # Entries |
 |-----------------|---------------------------------------|-----------|
 | Articles        | News article collection.              | *10,954*  |
-| Bookmarks       | Bookmarked news articles.             | *3,115*   |
-| Favorites       | Favorites news articles.              | *2,733*   |
+| Bookmarks       | Bookmarked news articles.             | *2,479*   |
+| Favorites       | Favorites news articles.              | *3,115*   |
 | Interactions    | Read articles by users.               | *34,890*  |
 | Ratings         | Likes and dislikes for articles.      | *28,382*  |
 | Recommendations | Daily article recommendations.        | *207,220* |
