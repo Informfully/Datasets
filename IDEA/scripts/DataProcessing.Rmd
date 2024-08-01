@@ -1,0 +1,1237 @@
+---
+title: "DataProcessing_DatasetPaper"
+author: "Nicolas Mattis"
+date: "2023-12-08"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this RMarkdown, data from a 2-week long field experiment with the Informfully platform is processed and analysed.
+
+The Document includes all relevant R code for transparency and reproducibility. It also reports scale reliability analyses for self-reported measures from an initial intake survey.
+
+# 1. Loading data and packages
+
+## 1.1 Libraries
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(readxl)
+library(jsonlite)
+library(reshape2)
+library(ltm) # for scale reliability
+library(lavaan) # for cfa
+library(ggplot2) # for data visualisation
+library(wesanderson) # for custom colour palettes
+library(cowplot)
+library(data.table)
+```
+
+## 1.2 User data
+
+```{r, message=FALSE, warning=FALSE}
+
+# Here we load the preprocessed qualtrics data
+users = read.csv('qualtrics_processed.csv') %>%
+  mutate(nws_int = nws_int - 1) # 0 days coded as 1 initially
+
+# Here we load group allocations for week 2
+groups_w2 = read_excel('week2_groups.xlsx') %>%
+  dplyr::rename(username = username.x, week2_group = new_group) %>%
+  dplyr::select(username, week2_group)
+
+users = users %>% left_join(groups_w2, by = 'username')
+
+```
+
+## 1.3 User interaction data
+
+```{r, message=FALSE, warning=FALSE}
+
+# Here we load the preprocessed in-app survey responses
+surveys = read.csv('surveys_processed.csv')
+
+# Here we load the raw interaction data
+interactions_string = readLines("articleViews_until_11_12.json", warn = FALSE)
+interactions_string_clean = iconv(interactions_string, to = "UTF-8", sub = "")
+interactions = fromJSON(interactions_string_clean)
+
+remove(interactions_string, interactions_string_clean)
+
+# Here we load users ratings
+likes_string = readLines("articleLikes_until_11_12.json", warn = FALSE)
+likes_string_clean = iconv(likes_string, to = "UTF-8", sub = "")
+ratings = fromJSON(likes_string_clean)
+
+remove(likes_string, likes_string_clean)
+
+# Here we load users bookmarks
+bookmarks_string = readLines("articleBookmarks_until_11_12.json", warn = FALSE)
+bookmarks_string_clean = iconv(bookmarks_string, to = "UTF-8", sub = "")
+bookmarks = fromJSON(bookmarks_string_clean)
+
+remove(bookmarks_string, bookmarks_string_clean)
+
+# Here we load users favourites
+favourites_string = readLines("articleArchive_until_11_12.json", warn = FALSE)
+favourites_string_clean = iconv(favourites_string, to = "UTF-8", sub = "")
+favourites = fromJSON(favourites_string_clean)
+
+remove(favourites_string, favourites_string_clean)
+
+# Here we load users pageViews
+pageViews_string = readLines("pageViews_until_12-11.json", warn = FALSE)
+pageViews_string_clean = iconv(pageViews_string, to = "UTF-8", sub = "")
+pageViews = fromJSON(pageViews_string_clean)
+
+remove(pageViews_string, pageViews_string_clean)
+
+```
+
+## 1.4 Article data
+
+### 1.4.1 Nudged articles
+
+Our stimulus material, namely daily scraped news articles from the
+Guardian's environment section (original and rewritten version) plus a
+popular article from the previous day that explicitly did not deal with
+the environment.
+
+The resulting dataset includes 3 stimuli per day between Nov 21st and
+Dec 6th.
+
+```{r article data nudged articles}
+
+# function to process daily files of nudged articles
+process_nudged_articles = function(file) {
+  string = readLines(file, warn = FALSE)
+  string_clean = iconv(string, to = "UTF-8", sub = "")
+  output = fromJSON(string_clean)
+  output$datePublished = as.POSIXct(as.numeric(output$datePublished[[1]][[1]]), 
+                                    origin = '1970-01-01')
+  output$dateScraped = as.POSIXct(as.numeric(output$dateScraped[[1]][[1]]), 
+                                    origin = '1970-01-01')
+  if(file == "./nudged_articles/nudged_articles_2023-11-29.json") {
+    output = output %>% dplyr::select(-text)
+  }
+  return(output)
+}
+
+# list of relevant files; nov 19th to 21st currently ignored 
+files = c(#"./nudged_articles/nudged_articles_2023-11-19.json", 
+          #"./nudged_articles/nudged_articles_2023-11-20.json",
+          #"./nudged_articles/nudged_articles_2023-11-21.json",
+          "./nudged_articles/nudged_articles_2023-11-22.json",
+          "./nudged_articles/nudged_articles_2023-11-23.json",
+          "./nudged_articles/nudged_articles_2023-11-24.json",
+          "./nudged_articles/nudged_articles_2023-11-25.json",
+          "./nudged_articles/nudged_articles_2023-11-26.json",
+          "./nudged_articles/nudged_articles_2023-11-27.json",
+          "./nudged_articles/nudged_articles_2023-11-28.json",
+          "./nudged_articles/nudged_articles_2023-11-29.json",
+          "./nudged_articles/nudged_articles_2023-11-30.json",
+          "./nudged_articles/nudged_articles_2023-12-01.json",
+          "./nudged_articles/nudged_articles_2023-12-02.json",
+          "./nudged_articles/nudged_articles_2023-12-03.json",
+          "./nudged_articles/nudged_articles_2023-12-04.json",
+          "./nudged_articles/nudged_articles_2023-12-05.json",
+          "./nudged_articles/nudged_articles_2023-12-06.json",
+          "./nudged_articles/nudged_articles_2023-12-07.json")
+
+# create df by looping through files with process_nudged_articles function
+nudged_articles = do.call(rbind, lapply(files, process_nudged_articles)) 
+
+# remove unnecessary data and function
+remove(process_nudged_articles, files)
+
+```
+
+### 1.4.2 Scraped news
+
+All news articles that have been scraped and theoretically could have
+been selected as recommendations.
+
+```{r article data scraped news}
+# function to process daily files of scraped articles
+process_scraped_articles = function(file) {
+  string = readLines(file, warn = FALSE)
+  string_clean = iconv(string, to = "UTF-8", sub = "")
+  output = fromJSON(string_clean)
+    if(file == "./news_articles/news_articles_2023-11-26.json") {
+    output$dateUpdated = as.POSIXct(as.numeric(output$dateUpdated[[1]][[1]]), 
+                                    origin = '1970-01-01')
+    }
+  if(file == "./news_articles/news_articles_2023-11-25.json") {
+    output$datePublished = 
+      as.POSIXct(as.numeric(output$datePublished$`$date`$`$numberLong`) / 
+                   1000, origin = '1970-01-01') + lubridate::hours(3)
+    output$dateScraped = 
+      as.POSIXct(as.numeric(output$dateScraped$`$date`$`$numberLong`) / 
+                   1000, origin = '1970-01-01') + lubridate::hours(3)
+    output$dateUpdated = 
+      as.POSIXct(as.numeric(output$dateUpdated[[1]][[1]]) / 
+                   1000, origin = '1970-01-01') + lubridate::hours(3)
+  }
+  if(file == "./news_articles/news_articles_2023-12-05.json") {
+    output$datePublished = 
+      as.POSIXct(as.numeric(output$datePublished$`$date`$`$numberLong`) / 
+                   1000, origin = '1970-01-01')
+    output$dateScraped = 
+      as.POSIXct(as.numeric(output$dateScraped$`$date`$`$numberLong`) / 
+                   1000, origin = '1970-01-01')
+    output$dateUpdated = 
+      as.POSIXct(as.numeric(output$dateUpdated[[1]][[1]]) / 
+                   1000, origin = '1970-01-01')
+    output = output %>% dplyr::select(-flag)
+  }
+  return(output)
+}
+
+# list of relevant files; Nov 19th to 21st currently ignored 
+files = c(#"./news_articles/news_articles_2023-11-19.json",
+          #"./news_articles/news_articles_2023-11-20.json",
+          #"./news_articles/news_articles_2023-11-21.json",
+          "./news_articles/news_articles_2023-11-22.json",
+          "./news_articles/news_articles_2023-11-23.json",
+          "./news_articles/news_articles_2023-11-24.json",
+          "./news_articles/news_articles_2023-11-25.json",
+          "./news_articles/news_articles_2023-11-26.json",
+          "./news_articles/news_articles_2023-11-27.json",
+          "./news_articles/news_articles_2023-11-28.json",
+          "./news_articles/news_articles_2023-11-29.json",
+          "./news_articles/news_articles_2023-11-30.json",
+          "./news_articles/news_articles_2023-12-01.json",
+          "./news_articles/news_articles_2023-12-02.json",
+          "./news_articles/news_articles_2023-12-03.json",
+          "./news_articles/news_articles_2023-12-04.json",
+          "./news_articles/news_articles_2023-12-05.json",
+          "./news_articles/news_articles_2023-12-06.json",
+          "./news_articles/news_articles_2023-12-07.json")
+
+# create df by looping through files with process_scraped_articles function
+scraped_articles = do.call(rbind, lapply(files, process_scraped_articles)) 
+
+# remove unnecessary data and function
+remove(process_scraped_articles, files)
+
+# visualisation
+scraped_articles$date = as.Date(scraped_articles$dateScraped)
+
+scraped_articles %>% 
+  group_by(date) %>%
+  summarise(articles = n()) %>%
+  ggplot(aes(x = date, y = articles, group = 1)) +
+  geom_line() +
+  scale_x_date(date_labels="%d %b",date_breaks  ="1 day") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(x = "Date", 
+       y = "Number of scraped articles",
+       title = "Scraped articles per day")
+```
+
+### 1.4.3 Recommendation lists
+
+Lists with all article ids that have been recommended to a certain group
+of users. This data becomes notably more complex in week 2, when topic
+personalisation is introduced. For background on the exact experimental
+setup see our pre registration: [TODO: ADD]
+
+```{r article data recommendation lists}
+#recs19_string = readLines("./recommendations/recommendation_lists_2023-11-19.json", warn = FALSE)
+#recs19_string_clean = iconv(recs19_string, to = "UTF-8", sub = "")
+#recs19 = fromJSON(recs19_string_clean)
+#recs19$`_id` = paste0("19", recs19$`_id`)
+#recs20_string = readLines("./recommendations/recommendation_lists_2023-11-20.json", warn = FALSE)
+#recs20_string_clean = iconv(recs20_string, to = "UTF-8", sub = "")
+#recs20 = fromJSON(recs20_string_clean)
+#recs20$`_id` = paste0("20", recs20$`_id`)
+#recs21_string = readLines("./recommendations/recommendation_lists_2023-11-21.json", warn = FALSE)
+#recs21_string_clean = iconv(recs21_string, to = "UTF-8", sub = "")
+#recs21 = fromJSON(recs21_string_clean)
+#recs21$`_id` = paste0("21", recs21$`_id`)
+#recs22_string = readLines("./recommendations/recommendation_lists_2023-11-22.json", warn = FALSE)
+#recs22_string_clean = iconv(recs22_string, to = "UTF-8", sub = "")
+#recs22 = fromJSON(recs22_string_clean)
+#recs22$`_id` = paste0("22", recs22$`_id`)
+recs23_string = readLines("./recommendations/recommendation_lists_2023-11-23.json", warn = FALSE)
+recs23_string_clean = iconv(recs23_string, to = "UTF-8", sub = "")
+recs23 = fromJSON(recs23_string_clean)
+recs23$`_id` = paste0("23", recs23$`_id`)
+# reformat date for recs 23
+recs23$createdAt = as.numeric(recs23$createdAt$`$date`$`$numberLong`)
+recs23$createdAt = recs23$createdAt %/% 1000
+recs23$createdAt = as.POSIXct(recs23$createdAt, origin = '1970-01-01')
+recs24_string = readLines("./recommendations/recommendation_lists_2023-11-24.json", warn = FALSE)
+recs24_string_clean = iconv(recs24_string, to = "UTF-8", sub = "")
+recs24 = fromJSON(recs24_string_clean)
+recs24$`_id` = paste0("24", recs24$`_id`)
+# reformat date for recs 24
+recs24$createdAt = as.numeric(recs24$createdAt$`$date`$`$numberLong`)
+recs24$createdAt = recs24$createdAt %/% 1000
+recs24$createdAt = as.POSIXct(recs24$createdAt, origin = '1970-01-01')
+recs25_string = readLines("./recommendations/recommendationListsBackup2023-11-25.json", warn = FALSE)
+recs25_string_clean = iconv(recs25_string, to = "UTF-8", sub = "")
+recs25 = fromJSON(recs25_string_clean)
+recs25$`_id` = paste0("25", recs25$`_id`)
+# reformat date for recs 25
+recs25$createdAt = as.numeric(recs25$createdAt$`$date`$`$numberLong`)
+recs25$createdAt = recs25$createdAt %/% 1000
+recs25$createdAt = as.POSIXct(recs25$createdAt, origin = '1970-01-01') + 
+  lubridate::hours(2)
+recs26_string = readLines("./recommendations/recommendationListsBackup2023-11-26.json", warn = FALSE)
+recs26_string_clean = iconv(recs26_string, to = "UTF-8", sub = "")
+recs26 = fromJSON(recs26_string_clean)
+recs26$`_id` = paste0("26", recs26$`_id`)
+# reformat date for recs 26
+recs26$createdAt = as.numeric(recs26$createdAt$`$date`$`$numberLong`)
+recs26$createdAt = recs26$createdAt %/% 1000
+recs26$createdAt = as.POSIXct(recs26$createdAt, origin = '1970-01-01')
+recs27_string = readLines("./recommendations/recommendation_lists_2023-11-27.json", warn = FALSE)
+recs27_string_clean = iconv(recs27_string, to = "UTF-8", sub = "")
+recs27 = fromJSON(recs27_string_clean)
+recs27$`_id` = paste0("27", recs27$`_id`)
+recs28_string = readLines("./recommendations/recommendation_lists_2023-11-28.json", warn = FALSE)
+recs28_string_clean = iconv(recs28_string, to = "UTF-8", sub = "")
+recs28 = fromJSON(recs28_string_clean)
+recs28$`_id` = paste0("28", recs28$`_id`)
+recs29_string = readLines("./recommendations/recommendation_lists_2023-11-29.json", warn = FALSE)
+recs29_string_clean = iconv(recs29_string, to = "UTF-8", sub = "")
+recs29 = fromJSON(recs29_string_clean)
+recs29$`_id` = paste0("29", recs29$`_id`)
+recs30_string = readLines("./recommendations/recommendation_lists_2023-11-30.json", warn = FALSE)
+recs30_string_clean = iconv(recs30_string, to = "UTF-8", sub = "")
+recs30 = fromJSON(recs30_string_clean)
+recs30$`_id` = paste0("30", recs30$`_id`)
+# from here on it becomes more difficult because of different recommendation sets
+recs01_string_w1 = readLines("./recommendations/recommendation_lists_2023-12-01_week_1.json", warn = FALSE)
+recs01_string_w1_clean = iconv(recs01_string_w1, to = "UTF-8", sub = "")
+recs01_w1 = fromJSON(recs01_string_w1_clean)
+recs01_w1$`_id` = paste0("01", recs01_w1$`_id`)
+recs01_string_w2 = readLines("./recommendations/recommendation_lists_2023-12-01_week_2.json", warn = FALSE)
+recs01_string_w2_clean = iconv(recs01_string_w2, to = "UTF-8", sub = "")
+recs01_w2 = fromJSON(recs01_string_w2_clean)
+recs01_w2$`_id` = paste0("01", recs01_w2$`_id`)
+recs02_string_w1 = readLines("./recommendations/recommendation_lists_2023-12-02_week_1.json", warn = FALSE)
+recs02_string_w1_clean = iconv(recs02_string_w1, to = "UTF-8", sub = "")
+recs02_w1 = fromJSON(recs02_string_w1_clean)
+recs02_w1$`_id` = paste0("02", recs02_w1$`_id`)
+recs02_string_w2 = readLines("./recommendations/recommendation_lists_2023-12-02_week_2.json", warn = FALSE)
+recs02_string_w2_clean = iconv(recs02_string_w2, to = "UTF-8", sub = "")
+recs02_w2 = fromJSON(recs02_string_w2_clean)
+recs02_w2$`_id` = paste0("02", recs02_w2$`_id`)
+recs03_string_w1 = readLines("./recommendations/recommendation_lists_2023-12-03_week_1.json", warn = FALSE)
+recs03_string_w1_clean = iconv(recs03_string_w1, to = "UTF-8", sub = "")
+recs03_w1 = fromJSON(recs03_string_w1_clean)
+recs03_w1$`_id` = paste0("03", recs03_w1$`_id`)
+recs03_string_w2 = readLines("./recommendations/recommendation_lists_2023-12-03_week_2.json", warn = FALSE)
+recs03_string_w2_clean = iconv(recs03_string_w2, to = "UTF-8", sub = "")
+recs03_w2 = fromJSON(recs03_string_w2_clean)
+recs03_w2$`_id` = paste0("03", recs03_w2$`_id`)
+recs04_string_w1 = readLines("./recommendations/recommendation_lists_2023-12-04_week_1.json", warn = FALSE)
+recs04_string_w1_clean = iconv(recs04_string_w1, to = "UTF-8", sub = "")
+recs04_w1 = fromJSON(recs04_string_w1_clean)
+recs04_w1$`_id` = paste0("04", recs04_w1$`_id`)
+recs04_string_w2 = readLines("./recommendations/recommendation_lists_2023-12-04_week_2.json", warn = FALSE)
+recs04_string_w2_clean = iconv(recs04_string_w2, to = "UTF-8", sub = "")
+recs04_w2 = fromJSON(recs04_string_w2_clean)
+recs04_w2$`_id` = paste0("04", recs04_w2$`_id`)
+#now they are combined
+recs05_string = readLines("./recommendations/recommendation_lists_2023-12-05_combined.json", warn = FALSE)
+recs05_string_clean = iconv(recs05_string, to = "UTF-8", sub = "")
+recs05 = fromJSON(recs05_string_clean)
+recs05$`_id` = paste0("05", recs05$`_id`)
+# reformat date for recs 05
+recs05$createdAt = as.numeric(recs05$createdAt$`$date`$`$numberLong`)
+recs05$createdAt = recs05$createdAt %/% 1000
+recs05$createdAt = as.POSIXct(recs05$createdAt, origin = '1970-01-01')
+recs06_string = readLines("./recommendations/recommendation_lists_2023-12-06_combined.json", warn = FALSE)
+recs06_string_clean = iconv(recs06_string, to = "UTF-8", sub = "")
+recs06 = fromJSON(recs06_string_clean)
+recs06$`_id` = paste0("06", recs06$`_id`)
+# reformat date for recs 06
+recs06$createdAt = as.numeric(recs06$createdAt$`$date`$`$numberLong`)
+recs06$createdAt = recs06$createdAt %/% 1000
+recs06$createdAt = as.POSIXct(recs06$createdAt, origin = '1970-01-01')
+
+recs07_string_w1 = readLines("./recommendations/recommendation_lists_2023-12-07_week_1.json", warn = FALSE)
+recs07_string_w1_clean = iconv(recs07_string_w1, to = "UTF-8", sub = "")
+recs07_w1 = fromJSON(recs07_string_w1_clean)
+recs07_w1$`_id` = paste0("07", recs07_w1$`_id`)
+recs07_string_w2 = readLines("./recommendations/recommendation_lists_2023-12-07_week_2.json", warn = FALSE)
+recs07_string_w2_clean = iconv(recs07_string_w2, to = "UTF-8", sub = "")
+recs07_w2 = fromJSON(recs07_string_w2_clean)
+recs07_w2$`_id` = paste0("07", recs07_w2$`_id`)
+
+recommendations = rbind(recs23, recs24, recs25, recs26, recs27, 
+                        recs28,recs29, recs30, recs01_w1, recs01_w2,
+                        recs02_w1, recs02_w2, recs03_w1, recs03_w2,
+                        recs04_w1,recs04_w2,
+                        recs05, recs06, recs07_w1, recs07_w2) %>%
+  dplyr::rename(informfully_id = userId)
+
+remove(#recs19_string, recs19_string_clean, recs19,
+       #recs20_string, recs20_string_clean, recs20,
+       #recs21_string, recs21_string_clean, recs21,
+       #recs22_string, recs22_string_clean, recs22,
+       recs23_string, recs23_string_clean, recs23,
+       recs24_string, recs24_string_clean, recs24,
+       recs25_string, recs25_string_clean, recs25,
+       recs26_string, recs26_string_clean, recs26,
+       recs27_string, recs27_string_clean, recs27,
+       recs28_string, recs28_string_clean, recs28,
+       recs29_string, recs29_string_clean, recs29,
+       recs30_string, recs30_string_clean, recs30,
+       recs01_string_w1, recs01_string_w1_clean, recs01_w1,
+       recs01_string_w2, recs01_string_w2_clean, recs01_w2,
+       recs02_string_w1, recs02_string_w1_clean, recs02_w1,
+       recs02_string_w2, recs02_string_w2_clean, recs02_w2,
+       recs03_string_w1, recs03_string_w1_clean, recs03_w1,
+       recs03_string_w2, recs03_string_w2_clean, recs03_w2,
+       recs04_string_w1, recs04_string_w1_clean, recs04_w1,
+       recs04_string_w2, recs04_string_w2_clean, recs04_w2,
+       recs05_string, recs05_string_clean, recs05,
+       recs06_string, recs06_string_clean, recs06,
+       recs07_string_w1, recs07_string_w1_clean, recs07_w1,
+       recs07_string_w2, recs07_string_w2_clean, recs07_w2
+       )
+
+# visualisation
+recommendations$date = as.Date(recommendations$createdAt)
+
+recommendations %>% 
+  group_by(date) %>%
+  summarise(recommendationsets = n()/26) %>%
+  ggplot(aes(x = date, y = recommendationsets, group = 1)) +
+  geom_line() +
+  scale_x_date(date_labels="%d %b",date_breaks  ="1 day") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  labs(x = "Date", 
+       y = "Number of recommendation sets",
+       title = "Recommendation sets per day")
+
+```
+
+### 1.4.4 Readability scores
+
+```{r}
+# Here we load the preprocessed readability scores for nudged articles and remove coyrighted content
+readability_scores = read.csv("readabilityScores_processed.csv") %>%
+  dplyr::select(-title, -teaser, -text, -type, -X)
+
+```
+
+
+# 2. Data wrangling
+
+Here we create, clean and merge all relevant datasets, namely:
+
+-   **'sample.csv'** :
+
+-   **'ratings.csv'**
+
+-   **'bookmarks.csv'**
+
+-   **'favourites.csv'**
+
+-   **'surveys.csv'**
+
+-   **'pageViews.csv'**
+
+-   **'interactions.json'**
+
+-   **'articles.csv'**
+
+-   **'recommendations.json'**
+
+## 2.1 Preparing article data
+
+### 2.1.1 Calculating text length
+
+```{r}
+# Function to count words in a paragraph
+count_words = function(paragraph) {
+  # Split the paragraph into words
+  words = unlist(strsplit(paragraph, "\\s+"))
+  # Count the number of words
+  return(length(words))
+}
+
+# Function to count sentences in a paragraph
+count_sentences = function(paragraph) {
+  # Split the paragraph into sentences
+  sentences = unlist(strsplit(paragraph, "[.!?]+"))
+  # Count the number of sentences
+  return(length(sentences))
+}
+
+# calculate text length (in words) for scraped articles
+# Apply the function to each row and sum the results
+scraped_articles$word_count = sapply(scraped_articles$body, function(paragraphs_list) {
+  # Sum the word counts for all paragraphs in the list
+  sum(sapply(paragraphs_list, count_words))
+})
+
+# calculate text length (in sentences) for scraped articles
+# Apply the function to each row and sum the results
+scraped_articles$sentence_count = sapply(scraped_articles$body, function(paragraphs_list) {
+  # Sum the word counts for all paragraphs in the list
+  sum(sapply(paragraphs_list, count_sentences))
+})
+
+# calculate text length (in words) for nudged articles
+nudged_articles$word_count = sapply(nudged_articles$body, function(paragraphs_list) {
+  # Sum the word counts for all paragraphs in the list
+  sum(sapply(paragraphs_list, count_words))
+})
+
+# calculate text length (in sentences) for nudged articles
+nudged_articles$sentence_count = sapply(nudged_articles$body, function(paragraphs_list) {
+  # Sum the word counts for all paragraphs in the list
+  sum(sapply(paragraphs_list, count_sentences))
+})
+```
+
+### 2.1.2 Cleaning dataset
+
+```{r}
+scraped_articles = scraped_articles %>%
+  dplyr::select(-body, -language, -articleType) %>%
+  mutate(flag = 'none')
+
+nudged_articles = nudged_articles %>%
+  dplyr::select(-body, -language, -articleType) %>%
+  mutate(date = format(datePublished, format = "%Y-%m-%d"))
+
+articles = rbind(nudged_articles, scraped_articles) %>%
+  rename(articleId = `_id`)
+
+```
+
+## 2.2 Creating a final sample
+
+Here we create a final sample of users and interactions to be included. For this we filter out interactions that took place outside of the experimental period and users who we cannot map onto Qualtrics responses (e.g. test accounts)
+
+### 2.2.1 Preprocessing raw interaction data
+
+Below we preprocess the interaction data, changing names and formatting the datetime variable(s)
+
+```{r}
+# Here we transform dates to proper format
+interactions$createdAt = interactions$createdAt [[1]]
+interactions$createdAt = interactions$createdAt [[1]]
+interactions$createdAt = as.numeric(interactions$createdAt) %/% 1000
+interactions$createdAt = as.POSIXct(interactions$createdAt, 
+                                      origin = '1970-01-01')
+# Same thing for a second column
+interactions$updatedAt = interactions$updatedAt [[1]]
+interactions$updatedAt = interactions$updatedAt [[1]]
+interactions$updatedAt = as.numeric(interactions$updatedAt) %/% 1000
+interactions$updatedAt = as.POSIXct(interactions$updatedAt, 
+                                      origin = '1970-01-01')
+  
+interactions = interactions %>%
+    dplyr::rename(informfully_id = userId)
+
+```
+
+### 2.2.2 Filtering interactions by inclusion date
+
+Below we filter out all interactions that took place before the start / after the finish of the experiment. The reason is that these users saw differently organised news feeds that are less comparable.
+
+```{r}
+interactions = interactions %>%
+  filter(createdAt > as.POSIXct("2023-11-23 00:00:00")) %>%
+  filter(createdAt < as.POSIXct("2023-12-08 00:00:00"))
+
+```
+
+### 2.2.3 Filtering out interactions where article data is missing
+
+```{r}
+ids = articles %>%
+  dplyr::select(articleId) %>%
+  unlist()
+
+interactions = interactions %>%
+  filter(articleId %in% ids)
+
+remove(ids)
+
+```
+
+
+### 2.1.4 Final sample with all active users
+
+Below we create a sample df with all valid users that were active during the experiment at least once.
+
+```{r}
+# all distinct users who were active during the experiment
+active_users = interactions %>%
+  distinct(informfully_id)
+
+# sample of all users that completed the intake survey
+sample = active_users %>% 
+  merge(users, by = 'informfully_id')
+
+```
+
+## 2.3 Adapting individual datasets
+
+Here we clean different data sets, create additional variables, and filter out unnecessary or duplicated information
+
+### 2.3.1 Sample
+
+#### 2.3.1.1 Dummys for survey completions
+```{r}
+week1 = surveys %>% 
+  filter(week == 'week1') %>% 
+  distinct(informfully_id) %>%
+  unlist()
+
+week2 = surveys %>% 
+  filter(week == 'week2') %>% 
+  distinct(informfully_id) %>%
+  unlist()
+
+sample = sample %>%
+  mutate(took_survey_week1 = ifelse(informfully_id %in% week1, 
+                        1, 0)) %>%
+  mutate(took_survey_week2 = ifelse(informfully_id %in% week2, 
+                        1, 0))
+
+remove(week1, week2)
+
+```
+
+#### 2.3.1.2 Scales
+
+```{r}
+sample = sample %>%
+  # create political efficacy scale
+  mutate(pol_eff_1_r = dplyr::recode(pol_eff_1,
+    '1' = '7',
+    '2' = '6',
+    '3' = '5',
+    '4' = '4',
+    '5' = '3',
+    '6' = '2',
+    '7' = '1'
+  )) %>%
+  mutate(pol_eff = (as.numeric(pol_eff_1_r) + pol_eff_2 + pol_eff_3 + pol_eff_4 + pol_eff_5)/5) %>%
+  # create algorithmic preferences scale
+  mutate(alg_pre = (alg_pre_1 + alg_pre_2 + alg_pre_3 + alg_pre_4 + alg_pre_5) / 5) %>%
+  # create journalistic preferences scale 
+  mutate(jou_pre = (jou_pre_1 + jou_pre_2 + jou_pre_3) / 3) %>%
+  # create information overload index
+  mutate(inf_ovr = (inf_ovr_1 + inf_ovr_2 + inf_ovr_3 + inf_ovr_4 + inf_ovr_5 + inf_ovr_6) / 6) %>%
+  # create positive attitudes towards algorithms scale
+  mutate(ata_pos = (ata_pos_1 + ata_pos_2 + ata_pos_3 + ata_pos_4 + ata_pos_5 + ata_pos_6 + ata_pos_7 + ata_pos_8 + ata_pos_9 + ata_pos_10 + ata_pos_11 + ata_pos_12) / 12) %>%
+  # create negative attitudes towards algorithms scale
+  mutate(ata_neg = (ata_neg_1 + ata_neg_2 + ata_neg_3 + ata_neg_4 + ata_neg_5 + ata_neg_6 + ata_neg_7 + ata_neg_8) / 8) %>%
+  # create diversity values scale
+  mutate(div_val = (div_val_1 + div_val_2 + div_val_3 + div_val_4 + div_val_5 + div_val_6 + div_val_7) / 7)
+
+```
+
+#### 2.3.1.3 Scale statistics
+
+##### 2.3.1.3.1 Political Efficacy
+
+```{r}
+pol_eff_model = 'efficacy_m =~pol_eff_1_r + pol_eff_2 + pol_eff_3 + pol_eff_4 + pol_eff_5'
+
+fit_pol_eff = cfa(pol_eff_model, data = sample)
+summary(fit_pol_eff, fit.measures = TRUE)
+
+pol_eff = sample %>% 
+  dplyr::select(pol_eff_1_r, 
+                pol_eff_2, 
+                pol_eff_3, 
+                pol_eff_4, 
+                pol_eff_5)
+
+cronbach.alpha(pol_eff)
+
+remove(pol_eff_model, fit_pol_eff, pol_eff)
+
+```
+
+##### 2.3.1.3.2 Diversity values
+
+```{r}
+dv_model = 'dv_m =~div_val_1 + div_val_2 + div_val_3 + div_val_4 + div_val_5 + div_val_6 + div_val_7'
+
+fit_dv = cfa(dv_model, data = sample)
+summary(fit_dv, fit.measures = TRUE)
+
+dv = sample %>% 
+  dplyr::select(div_val_1, 
+                div_val_2, 
+                div_val_3, 
+                div_val_4, 
+                div_val_5,
+                div_val_6,
+                div_val_7)
+
+cronbach.alpha(dv)
+
+remove(dv_model, fit_dv, dv)
+
+```
+
+##### 2.3.1.3.3 News selection preferences
+
+###### 2.3.1.3.3.1 Algorithmic preferences
+
+```{r}
+alg_pre_model = 'alg_m =~alg_pre_1 + alg_pre_2 + alg_pre_3 + alg_pre_4 + alg_pre_5'
+
+fit_alg_pre = cfa(alg_pre_model, data = sample)
+summary(fit_alg_pre, fit.measures = TRUE)
+
+alg_pre = sample %>% 
+  dplyr::select(alg_pre_1, 
+                alg_pre_2, 
+                alg_pre_3, 
+                alg_pre_4, 
+                alg_pre_5)
+
+cronbach.alpha(alg_pre)
+
+remove(alg_pre_model, fit_alg_pre, alg_pre)
+
+```
+
+###### 2.3.1.3.3.2 Journalistic preferences
+
+```{r}
+jou_pre_model = 'jou_m =~jou_pre_1 + jou_pre_2 + jou_pre_3'
+
+fit_jou_pre = cfa(jou_pre_model, data = sample)
+summary(fit_jou_pre, fit.measures = TRUE)
+
+jou_pre = sample %>% 
+  dplyr::select(jou_pre_1, 
+                jou_pre_2, 
+                jou_pre_3)
+
+cronbach.alpha(jou_pre)
+
+remove(jou_pre_model, fit_jou_pre, jou_pre)
+
+```
+
+##### 2.3.1.3.4 News information overload
+
+```{r}
+inf_ovr_model = 'inf_ovr_m =~inf_ovr_1 + inf_ovr_2 + inf_ovr_3 + inf_ovr_4 + inf_ovr_5 + inf_ovr_6'
+
+fit_inf_ovr = cfa(inf_ovr_model, data = sample)
+summary(fit_inf_ovr, fit.measures = TRUE)
+
+inf_ovr = sample %>% 
+  dplyr::select(inf_ovr_1, 
+                inf_ovr_2,
+                inf_ovr_3,
+                inf_ovr_4,
+                inf_ovr_5,
+                inf_ovr_6)
+
+cronbach.alpha(inf_ovr)
+
+remove(inf_ovr_model, fit_inf_ovr, inf_ovr)
+```
+
+##### 2.3.1.3.5 Attitudes towards algorithms
+
+###### 2.3.1.3.5.1 Positive attitudes
+
+```{r}
+ata_pos_model = 'ata_pos_m =~ata_pos_1 + ata_pos_2 + ata_pos_3 + ata_pos_4 + ata_pos_5 + ata_pos_6 + ata_pos_7 + ata_pos_8 + ata_pos_9 + ata_pos_10 + ata_pos_11 + ata_pos_12'
+
+fit_ata_pos = cfa(ata_pos_model, data = sample)
+summary(fit_ata_pos, fit.measures = TRUE)
+
+ata_pos = sample %>% 
+  dplyr::select(ata_pos_1, 
+                ata_pos_2,
+                ata_pos_3,
+                ata_pos_4,
+                ata_pos_5,
+                ata_pos_6,
+                ata_pos_7,
+                ata_pos_8,
+                ata_pos_9,
+                ata_pos_10,
+                ata_pos_11,
+                ata_pos_12)
+
+cronbach.alpha(ata_pos)
+
+remove(ata_pos_model, fit_ata_pos, ata_pos)
+
+```
+
+###### 2.3.1.3.5.2 Negative attitudes
+
+```{r}
+ata_neg_model = 'ata_pos_m =~ata_neg_1 + ata_neg_2 + ata_neg_3 + ata_neg_4 + ata_neg_5 + ata_neg_6 + ata_neg_7 + ata_neg_8'
+
+fit_ata_neg = cfa(ata_neg_model, data = sample)
+summary(fit_ata_neg, fit.measures = TRUE)
+
+ata_neg = sample %>% 
+  dplyr::select(ata_neg_1, 
+                ata_neg_2,
+                ata_neg_3,
+                ata_neg_4,
+                ata_neg_5,
+                ata_neg_6,
+                ata_neg_7,
+                ata_neg_8)
+
+cronbach.alpha(ata_neg)
+
+remove(ata_neg_model, fit_ata_neg, ata_neg)
+
+```
+
+#### 2.3.1.4 Filter out sensitive and unneccessary info
+
+```{r}
+
+sample = sample %>% dplyr::select(-age, -gender, -education, -X,
+                                  -username, -roots_id, -userGroup)
+
+```
+
+### 2.3.2 Interaction data
+
+```{r}
+active_ids = sample %>%
+  dplyr::select(informfully_id) %>%
+  unlist()
+  
+interactions = interactions %>%
+  filter(informfully_id %in% active_ids)
+
+# Here we calculate the number of prior days that users were active 
+interactions = interactions %>%
+  mutate(date = format(createdAt, format = "%Y-%m-%d")) %>%
+  arrange(informfully_id, date) %>%
+  # Create a new column 'unique_days_before' to store the result
+  group_by(informfully_id) %>%
+  mutate(unique_days_before = sapply(seq_along(date), function(i) {
+    unique_dates <- unique(date[1:i - 1])
+    return(length(unique_dates))
+  }))
+
+
+interactions$articlePublishedDate = interactions$articlePublishedDate[[1]][[1]]
+
+interactions$articlePublishedDate = as.numeric(interactions$articlePublishedDate) %/% 1000
+interactions$articlePublishedDate = as.POSIXct(interactions$articlePublishedDate, 
+                                      origin = '1970-01-01')
+
+```
+
+### 2.3.3 In-app survey data
+
+```{r}
+surveys = surveys %>%
+  rename(article_displayed_old = article_displayed,
+         article_displayed = article_seen) %>%
+  dplyr::select(-X, -userGroup, -userGroupID, -username, -reading.time, -days.active, -filler_question, article_displayed_old)
+
+```
+
+### 2.3.4 Other in-app data
+
+#### 2.3.4.1 Article Ratings
+
+```{r}
+ratings = ratings %>% 
+  rename(informfully_id = userId) %>% 
+  filter(informfully_id %in% active_ids)
+
+ratings$createdAt = ratings$createdAt$`$date`$`$numberLong`
+ratings$removedAt = ratings$removedAt$`$date`$`$numberLong`
+
+ratings$createdAt = as.numeric(ratings$createdAt) %/% 1000
+ratings$createdAt = as.POSIXct(ratings$createdAt, 
+                                      origin = '1970-01-01')
+
+ratings$removedAt = as.numeric(ratings$removedAt) %/% 1000
+ratings$removedAt = as.POSIXct(ratings$removedAt, origin = '1970-01-01')
+```
+
+#### 2.3.4.2 Bookmarks
+
+```{r}
+bookmarks = bookmarks %>% 
+  rename(informfully_id = userId) %>% 
+  filter(informfully_id %in% active_ids)
+
+bookmarks$createdAt = bookmarks$createdAt$`$date`$`$numberLong`
+bookmarks$removedAt = bookmarks$removedAt$`$date`$`$numberLong`
+
+bookmarks$createdAt = as.numeric(bookmarks$createdAt) %/% 1000
+bookmarks$createdAt = as.POSIXct(bookmarks$createdAt, 
+                                      origin = '1970-01-01')
+
+bookmarks$removedAt = as.numeric(bookmarks$removedAt) %/% 1000
+bookmarks$removedAt = as.POSIXct(bookmarks$removedAt, origin = '1970-01-01')
+
+bookmarks$articlePublishedDate = bookmarks$articlePublishedDate[[1]][[1]][[1]]
+
+```
+
+#### 2.3.4.3 Favourites
+
+```{r}
+favourites = favourites %>% 
+  rename(informfully_id = userId) %>% 
+  filter(informfully_id %in% active_ids)
+
+favourites$createdAt = favourites$createdAt$`$date`$`$numberLong`
+favourites$removedAt = favourites$removedAt$`$date`$`$numberLong`
+
+favourites$createdAt = as.numeric(favourites$createdAt) %/% 1000
+favourites$createdAt = as.POSIXct(favourites$createdAt, 
+                                      origin = '1970-01-01')
+
+favourites$removedAt = as.numeric(favourites$removedAt) %/% 1000
+favourites$removedAt = as.POSIXct(favourites$removedAt, origin = '1970-01-01')
+
+favourites$articlePublishedDate = favourites$articlePublishedDate[[1]][[1]][[1]]
+
+```
+
+#### 2.3.4.4 Page views
+
+```{r}
+pageViews$createdAt = pageViews$createdAt$`$date`$`$numberLong`
+pageViews$articleId = pageViews$parameters$articleId
+pageViews$isInReadingList = pageViews$parameters$isInReadingList
+pageViews$isInArchive = pageViews$parameters$isInArchive
+pageViews$primaryCategory = pageViews$parameters$primaryCategory
+pageViews$fromArticleScreen = pageViews$parameters$fromArticleScreen
+pageViews$maxNrFurtherRecArticles = pageViews$parameters$maxNrFurtherRecArticles
+pageViews$darkMode = pageViews$parameters$darkMode
+
+pageViews = pageViews %>% 
+  rename(informfully_id = userId,
+         isBookmarked = isInReadingList,
+         isFavourited = isInArchive) %>% 
+  filter(informfully_id %in% active_ids) %>%
+  dplyr::select(-maxNrFurtherRecArticles, -darkMode, -parameters)
+
+```
+
+# 3. Creating final dummy variables
+
+```{r}
+# create df with first surveys per user
+first_surveys = surveys %>% 
+  dplyr::select(informfully_id, first_survey) %>% 
+  distinct(informfully_id, .keep_all = TRUE)
+
+# merge with survey data to determine experimental weeks
+interactions = interactions %>% 
+  left_join(first_surveys, by = 'informfully_id') %>%
+  mutate(experimental_week = ifelse(createdAt < first_survey, 'week1', 'week2'))
+
+# merge with survey data to determine experimental weeks
+recommendations = recommendations %>%
+  left_join(first_surveys, by = 'informfully_id') %>%
+  mutate(experimental_week = ifelse(createdAt < first_survey, 'week1', 'week2'))
+
+# make df for article flags
+article_flags = articles %>%
+  dplyr::select(articleId, flag) %>%
+  distinct(articleId, .keep_all = TRUE)
+
+# merge with article data to get flags
+recommendations = recommendations %>% 
+  left_join(article_flags, by = 'articleId')
+
+first_articles = recommendations %>%
+  filter(prediction == 100 | prediction == 96) %>%
+  filter(flag != 'popular') %>%
+  filter(as.Date(date) == as.Date('2023-12-05')) %>%
+    mutate(experimental_group_w2 = case_when(
+    flag == 'nudge-env-OG' & prediction == 100 ~ 1,
+    flag == 'nudge-env-RW' & prediction == 100 ~ 2,
+    flag == 'nudge-env-OG' & prediction == 95 ~ 3,
+    TRUE ~ 4
+  )) %>%
+  dplyr::select(informfully_id, experimental_group_w2)
+
+sample = sample %>%
+  dplyr::rename(experimental_group_w1 = userGroupID,
+                personalisation = week2_group) %>%
+  left_join(first_articles, by = 'informfully_id') 
+
+remove(groups_w2, first_articles, first_surveys)
+
+```
+
+# 4. Data visualisation
+
+## 4.1 Daily active users
+
+```{r}
+daily_users = interactions %>% 
+  group_by(date) %>%
+  summarise(count = n_distinct(informfully_id)) %>%
+  mutate(date = as.Date(date))
+
+mean(daily_users$count)
+sd(daily_users$count)
+
+breaks = seq.Date(from = min(as.Date(daily_users$date)), 
+             to = max(as.Date(daily_users$date)), by = "2 days")
+
+daily_users_viz = ggplot(daily_users, aes(x=date, y = count)) +
+  geom_bar(stat = "identity", 
+           fill = wes_palette("AsteroidCity1", n = 1)) +
+  labs(title="Daily active users",
+       x="Date",
+       y="No. of active Users") +
+  scale_x_date(breaks = breaks, date_labels = "%d-%m") +
+  theme_classic(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+daily_users_viz
+
+remove(breaks, daily_users)
+
+ggsave('./Dataset_paper/daily_users.png', daily_users_viz,
+       height = 6, width = 8, dpi = 1200)
+
+```
+
+## 4.2 Daily interactions
+
+```{r}
+daily_interactions = interactions %>% 
+  group_by(date) %>%
+  summarise(count = n()) %>%
+  mutate(date = as.Date(date))
+
+mean(daily_interactions$count)
+sd(daily_interactions$count)
+
+breaks = seq.Date(from = min(as.Date(daily_interactions$date)), 
+             to = max(as.Date(daily_interactions$date)), by = "2 days")
+
+daily_interactions_viz = ggplot(daily_interactions, 
+                                aes(x=date, y = count)) +
+  geom_bar(stat = "identity", 
+           fill = wes_palette("AsteroidCity1", n = 1)) + 
+  labs(title="Daily interactions",
+       x="Date",
+       y="No. of selected articles") +
+  scale_x_date(breaks = breaks, date_labels = "%d-%m") +
+  theme_classic(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+daily_interactions_viz
+
+remove(breaks, daily_interactions)
+
+ggsave('./Dataset_paper/daily_interactions.png', daily_interactions_viz,
+       height = 6, width = 8, dpi = 1200)
+
+```
+
+## 4.3 Topic preferences
+
+```{r}
+
+relevant_topics = c('business', 'crime', 'entertainment&arts',
+                    'environment', 'football', 'health',
+                    'lifeandstyle', 'politics', 'science',
+                    'sport', 'technology', 'uk news', 'world')
+
+categories = articles %>% dplyr::select(primaryCategory, articleId) %>% distinct(articleId, .keep_all = TRUE)
+
+topics = interactions %>%
+  left_join(categories, 
+            by = 'articleId') %>%
+  mutate(primaryCategory = ifelse(primaryCategory %in% relevant_topics, 
+                                  primaryCategory, 'uncategorised')) %>%
+  group_by(primaryCategory) %>%
+  summarise(N = n()) %>%
+  mutate(group = 1) %>%
+  mutate(percentage = N / sum(N) * 100) 
+
+# reorder
+topics = topics %>%
+  mutate(group = fct_reorder(primaryCategory, 
+                             percentage, 
+                             .desc = FALSE))
+
+# custom colour palette
+my_palette = c('#2E294E', '#9B97B2', '#D8A7CA', '#DD7596', 
+               '#F77F00', '#654236', '#DB995A', '#3C6E71', 
+               '#414288', '#682D63', '#65743A', '#5FB49C', 
+               '#BB999C', '#A51080') 
+  
+topics_vis = ggplot(topics, aes(x = group, y = N, fill = primaryCategory)) +
+  geom_bar(position = position_dodge(width = 1.5), 
+           stat = "identity") +
+  geom_text(aes(label = primaryCategory), 
+            position = position_dodge(width = 0.9), 
+            hjust = 1.2, size = 3.5, color = "white") +  # Adjust label position and size
+  geom_text(aes(label = sprintf("%.1f%%", percentage), 
+                y = N + 1),  # Slightly above the bars
+            position = position_dodge(width = 0.9),
+            hjust = -0.1, vjust = .5, size = 3.5, color = "black") +
+  labs(x = "",
+       y = "",
+       title = "News selections per topic"
+  ) +
+  scale_y_discrete(expand = c(0.15, 0)) +
+  coord_flip() +  # Flip coordinates for horizontal bars
+  scale_fill_manual(values = my_palette) +
+  theme_classic(base_size = 12) +
+  theme(
+    axis.text.x = element_blank(),  # Remove the x-axis labels
+    axis.line = element_blank(),  # Remove the axis lines
+    axis.ticks = element_blank(),  # Remove the axis ticks
+    axis.text.y = element_blank(),  # Remove the y-axis labels
+    axis.title.y = element_blank(),  # Remove the y-axis title
+    legend.position = "none",  # Remove the legend
+    #plot.margin = margin(1, 1, 1, 1, "cm"),  # Adjust right margin
+    plot.title = element_text(hjust = 0.15)  # Move title right
+  ) +         
+  guides(fill = guide_legend(title = NULL))  # Remove the legend title
+
+
+topics_vis
+
+ggsave('./Dataset_paper/topics.png', topics_vis,
+       height = 6, width = 8, dpi = 1200)
+
+```
+
+## 4.4 Article length
+
+```{r}
+# Mutate the word_count to cap values at the threshold
+articles_new <- articles %>%
+  mutate(word_count_capped = ifelse(word_count > 4000, 4000,
+                                    word_count))
+
+article_length_viz = ggplot(articles_new, aes(x = word_count_capped)) +
+  geom_histogram(binwidth = 10, 
+                 fill = wes_palette("AsteroidCity1", n = 1)) +
+  scale_x_continuous(breaks = c(seq(0, 4000, by = 500), 4000),
+                     labels = c(seq(0, 4000, by = 500),
+                                paste0('         ', "+"))) +
+  labs(title="Average word length",
+       x="Number of words",
+       y="Number of articles") +
+  theme_classic(base_size = 12) 
+
+article_length_viz
+
+ggsave('./Dataset_paper/article_length.png', article_length_viz,
+       height = 6, width = 8, dpi = 1200)
+
+```
+
+## 4.5 Cowplot
+
+```{r}
+
+plot = plot_grid(daily_users_viz, 
+          daily_interactions_viz, 
+          topics_vis,
+          article_length_viz,
+          labels = c('A', 'B', 'C', 'D'),
+          label_size = 12,
+          ncol = 2, nrow = 2)
+
+
+ggsave('./Dataset_paper/new_plot.png', plot, 
+       height = 6, width = 8, dpi = 1200)
+
+```
+
+# 5. Descriptive statistics
+
+## 5.1 Average interactions per day
+
+```{r}
+
+interactions_per_user_per_day = interactions %>% 
+  group_by(informfully_id, date) %>%
+  summarise(n = n())
+
+mean(interactions_per_user_per_day$n)
+sd(interactions_per_user_per_day$n)
+
+```
+
+
+## 5.2 Unique days active
+
+```{r}
+
+days_active = interactions %>%
+  group_by(informfully_id) %>%
+  summarise(days = max(unique_days_before) + 1)
+
+mean(days_active$days)
+sd(days_active$days)
+
+```
+
+## 5.3 Sample descriptives
+
+```{r}
+# News interest
+mean(sample$nws_int)
+sd(sample$nws_int)
+
+# News selection preferences
+mean(sample$alg_pre)
+sd(sample$alg_pre)
+
+mean(sample$jou_pre)
+sd(sample$jou_pre)
+
+```
+
+
+# 6. Save output
+
+```{r}
+write.csv(sample, './Dataset_paper/sample.csv')
+write.csv(ratings, './Dataset_paper/ratings.csv')
+write.csv(bookmarks, './Dataset_paper/bookmarks.csv')
+write.csv(favourites, './Dataset_paper/favourites.csv')
+write.csv(surveys, './Dataset_paper/surveys.csv')
+write(toJSON(pageViews), './Dataset_paper/Views.json')
+write(toJSON(interactions), './Dataset_paper/interactions.json')
+write(toJSON(articles), './Dataset_paper/articles.json')
+write.csv(readability_scores, './Dataset_paper/readabilityScores.csv')
+
+unique_recs = recommendations[!duplicated(recommendations), ]
+
+missing = setdiff(unique_recs$informfully_id, 
+                  sample$informfully_id)
+
+unique_recs = unique_recs %>%
+  filter(!informfully_id %in% missing) %>%
+  dplyr::select(-first_survey, -'_id', -date)
+
+write(toJSON(unique_recs), './Dataset_paper/recommendations.json')
+```
