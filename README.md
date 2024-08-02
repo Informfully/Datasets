@@ -11,9 +11,10 @@ Informfully is an open-source reproducibility platform for content distribution 
 
 <!-- * [IDEA - Informfully Dataset with Enhanced Attributes](TBD) paper publication. -->
 * [Dataset codebook](https://github.com/Informfully/Datasets/blob/main/IDEA/Codebook.pdf) for the description of all attributed included in the dateset.
-* [Experiment pre-registration](https://osf.io/7jzm5) for all information related to the user study.
 * [Pre-processing scripts](https://github.com/Informfully/Datasets/tree/main/IDEA/scripts) used for preparing the dataset.
 * [Technical Documentation](https://informfully.readthedocs.io/en/latest/database.html) of the document collection form Informfully.
+* [Experiment pre-registration 1](https://osf.io/yp5d9?mode=&revisionId=&view_only=) for information related to the first week.
+* [Experiment pre-registration 2](https://osf.io/cqebd?mode=&revisionId=&view_only=) for information related to the second week.
 
 ## Dataset
 
