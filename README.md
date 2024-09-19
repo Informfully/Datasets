@@ -30,6 +30,34 @@ Informfully is an open-source reproducibility platform for content distribution 
 | Users           | Profile and background information.   | *593*     |
 | Views           | Browsing and session history.         | *84,747*  |
 
+## Citation
+
+If you use any code or data of this repository in a scientific publication, we ask you to cite the following papers:
+
+<!--Update once the final version of the paper has been published.-->
+
+- [IDEA – Informfully Dataset with Enhanced Attributes](https://www.informfully.ch), Heitz *et al.*, Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems, 2024.
+
+  ```
+  @inproceedings{heitz2023classification,
+    title={IDEA – Informfully Dataset with Enhanced Attributes},
+    author={Heitz, Lucien and Mattis, Nicolas and Inel, Oana and van Atteveldt, Wouter},
+    booktitle = {Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems},
+    year={2024}
+  }
+  ```
+
+  - [Informfully - Research Platform for Reproducible User Studies](https://www.researchgate.net/publication/383261885_Informfully_-_Research_Platform_for_Reproducible_User_Studies), Heitz *et al.*, Proceedings of the 18th ACM Conference on Recommender Systems, 2024.
+
+  ```
+  @inproceedings{heitz2024informfully,
+    title={Informfully - Research Platform for Reproducible User Studies},
+    author={Heitz, Lucien and Croci, Julian A and Sachdeva, Madhav and Bernstein, Abraham},
+    booktitle={Proceedings of the 18th ACM Conference on Recommender Systems},
+    year={2024}
+  }
+  ```
+
 ## Contributing
 
 Your are welcome to contribute to the Informfully ecosystem and become a part of our community. Feel free to:
