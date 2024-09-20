@@ -42,7 +42,7 @@ If you use any code or data of this repository in a scientific publication, we a
   @inproceedings{heitz2023classification,
     title={IDEA – Informfully Dataset with Enhanced Attributes},
     author={Heitz, Lucien and Mattis, Nicolas and Inel, Oana and van Atteveldt, Wouter},
-    booktitle = {Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems},
+    booktitle={Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems},
     year={2024}
   }
   ```
