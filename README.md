@@ -36,7 +36,7 @@ If you use any code or data of this repository in a scientific publication, we a
 
 <!--Update once the final version of the paper has been published.-->
 
-- [IDEA – Informfully Dataset with Enhanced Attributes](https://www.informfully.ch), Heitz *et al.*, Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems, 2024.
+- [IDEA – Informfully Dataset with Enhanced Attributes](https://www.researchgate.net/publication/384631002_IDEA_-_Informfully_Dataset_with_Enhanced_Attributes), Heitz *et al.*, Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems, 2024.
 
   ```
   @inproceedings{heitz2023classification,
