@@ -39,7 +39,7 @@ If you use any code or data of this repository in a scientific publication, we a
 - [IDEA – Informfully Dataset with Enhanced Attributes](https://www.researchgate.net/publication/384631002_IDEA_-_Informfully_Dataset_with_Enhanced_Attributes), Heitz *et al.*, Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems, 2024.
 
   ```
-  @inproceedings{heitz2023classification,
+  @inproceedings{heitz2024idea,
     title={IDEA – Informfully Dataset with Enhanced Attributes},
     author={Heitz, Lucien and Mattis, Nicolas and Inel, Oana and van Atteveldt, Wouter},
     booktitle={Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems},
@@ -54,6 +54,7 @@ If you use any code or data of this repository in a scientific publication, we a
     title={Informfully - Research Platform for Reproducible User Studies},
     author={Heitz, Lucien and Croci, Julian A and Sachdeva, Madhav and Bernstein, Abraham},
     booktitle={Proceedings of the 18th ACM Conference on Recommender Systems},
+    pages={660--669},
     year={2024}
   }
   ```
