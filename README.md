@@ -7,10 +7,21 @@ Informfully is an open-source reproducibility platform for content distribution 
 
 **Links and Resources:** [GitHub](https://github.com/orgs/Informfully) | [Website](https://informfully.ch) | [X](https://x.com/informfully) | [Documentation](https://informfully.readthedocs.io) | [DDIS@UZH](https://www.ifi.uzh.ch/en/ddis.html) | [Google Play](https://play.google.com/store/apps/details?id=ch.uzh.ifi.news) | [App Store](https://apps.apple.com/us/app/informfully/id1460234202)
 
+## Overview
+
+The Informfully Dataset with Enhanced Attributes (IDEA) for news article
+recommendations consists of an open-source collection of user profiles, news articles with a high topic and outlet diversity, item recommendations, and rich user-item interactions from a field study on behavioral changes in news consumption.
+The records include both quantitative data from real-time session tracking as well as self-reported data from user surveys on satisfaction with news, knowledge
+acquisition, and personal background information. This paper outlines the data collection procedure and potential use cases of the dataset for designing normative recommender systems.
+It provides the
+documentation of all data collections together with insights into the data quality.
+
+Get access to the full paper here: [IDEA - Informfully Dataset with Enhanced Attributes](https://www.researchgate.net/publication/384631002_IDEA_-_Informfully_Dataset_with_Enhanced_Attributes)
+
 ## Documentation
 
 <!-- * [IDEA - Informfully Dataset with Enhanced Attributes](TBD) paper publication. -->
-* [Dataset codebook](https://github.com/Informfully/Datasets/blob/main/IDEA/Codebook.pdf) for the description of all attributed included in the dateset.
+* [Dataset codebook](https://github.com/Informfully/Datasets/blob/main/IDEA/Codebook.pdf) for the description of all attributes included in the dateset.
 * [Pre-processing scripts](https://github.com/Informfully/Datasets/tree/main/IDEA/scripts) used for creating the invidual files shared in the dataset.
 * [Technical documentation](https://informfully.readthedocs.io/en/latest/database.html) of outlining all document collection from Informfully.
 * [Experiment pre-registration 1](https://osf.io/yp5d9?mode=&revisionId=&view_only=) for information related to the first week.
