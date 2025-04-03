@@ -45,8 +45,6 @@ Get access to the full paper here: [IDEA - Informfully Dataset with Enhanced Att
 
 If you use any code or data of this repository in a scientific publication, we ask you to cite the following papers:
 
-<!--Update once the final version of the paper has been published.-->
-
 - [IDEA – Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf), Heitz *et al.*, Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems, 2024.
 
   ```
