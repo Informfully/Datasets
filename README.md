@@ -9,21 +9,21 @@ Informfully is an open-source reproducibility platform for content distribution 
 
 ## Overview
 
-The Informfully Dataset with Enhanced Attributes (IDEA) for news article
-recommendations consists of an open-source collection of user profiles, news articles with a high topic and outlet diversity, item recommendations, and rich user-item interactions from a field study on behavioral changes in news consumption.
+The Informfully Dataset with Enhanced Attributes (IDEA) for news articles.
+Recommendations consist of an open-source collection of user profiles, news articles with a high topic and outlet diversity, item recommendations, and rich user-item interactions from a field study on behavioral changes in news consumption.
 The records include both quantitative data from real-time session tracking as well as self-reported data from user surveys on satisfaction with news, knowledge
 acquisition, and personal background information. This paper outlines the data collection procedure and potential use cases of the dataset for designing normative recommender systems.
 It provides the
-documentation of all data collections together with insights into the data quality.
+documentation of all data collections, together with insights into the data quality.
 
 Get access to the full paper here: [IDEA - Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf)
 
 ## Documentation
 
 <!-- * [IDEA - Informfully Dataset with Enhanced Attributes](TBD) paper publication. -->
-* [Dataset codebook](https://github.com/Informfully/Datasets/blob/main/IDEA/Codebook.pdf) for the description of all attributes included in the dateset.
-* [Pre-processing scripts](https://github.com/Informfully/Datasets/tree/main/IDEA/scripts) used for creating the invidual files shared in the dataset.
-* [Technical documentation](https://informfully.readthedocs.io/en/latest/database.html) of outlining all document collection from Informfully.
+* [Dataset codebook](https://github.com/Informfully/Datasets/blob/main/IDEA/Codebook.pdf) for the description of all attributes included in the dataset.
+* [Pre-processing scripts](https://github.com/Informfully/Datasets/tree/main/IDEA/scripts) used for creating the individual files shared in the dataset.
+* [Technical documentation](https://informfully.readthedocs.io/en/latest/database.html) of outlining all document collections from Informfully.
 * [Experiment pre-registration 1](https://osf.io/yp5d9?mode=&revisionId=&view_only=) for information related to the first week.
 * [Experiment pre-registration 2](https://osf.io/cqebd?mode=&revisionId=&view_only=) for information related to the second week.
 
@@ -43,7 +43,7 @@ Get access to the full paper here: [IDEA - Informfully Dataset with Enhanced Att
 
 ## Citation
 
-If you use any code or data of this repository in a scientific publication, we ask you to cite the following papers:
+If you use any code or data from this repository in a scientific publication, we ask you to cite the following papers:
 
 - [IDEA – Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf), Heitz *et al.*, Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems, 2024.
 
@@ -70,9 +70,9 @@ If you use any code or data of this repository in a scientific publication, we a
 
 ## Contributing
 
-Your are welcome to contribute to the Informfully ecosystem and become a part of our community. Feel free to:
+You are welcome to contribute to the Informfully ecosystem and become a part of our community. Feel free to:
   - fork any of the [Informfully repositories](https://github.com/Informfully)
-  - join and write on the [dicussion board](https://github.com/orgs/Informfully/discussions)
+  - join and write on the [discussion board](https://github.com/orgs/Informfully/discussions)
   - make changes and create pull requests
 
 Please post your feature requests and bug reports in our [GitHub issues](https://github.com/Informfully/Documentation/issues) section.
