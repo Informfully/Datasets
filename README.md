@@ -20,7 +20,7 @@ Get access to the full paper here: [IDEA - Informfully Dataset with Enhanced Att
 
 ## Documentation
 
-<!-- * [IDEA - Informfully Dataset with Enhanced Attributes](TBD) paper publication. -->
+* [IDEA – Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf) workshop paper.
 * [Dataset codebook](https://github.com/Informfully/Datasets/blob/main/IDEA/Codebook.pdf) for the description of all attributes included in the dataset.
 * [Pre-processing scripts](https://github.com/Informfully/Datasets/tree/main/IDEA/scripts) used for creating the individual files shared in the dataset.
 * [Technical documentation](https://informfully.readthedocs.io/en/latest/database.html) of outlining all document collections from Informfully.
@@ -40,6 +40,14 @@ Get access to the full paper here: [IDEA - Informfully Dataset with Enhanced Att
 | Survey          | Knowledge quiz answers.               | *43,078*  |
 | Users           | Profile and background information.   | *593*     |
 | Views           | Browsing and session history.         | *84,747*  |
+
+If you are looking for more news datasets, we recommend the following resources:
+
+* [Adressa](https://reclab.idi.ntnu.no/dataset)
+* [EB-NeRD](https://recsys.eb.dk)
+* [Globo](https://www.kaggle.com/datasets/joelpl/news-portal-recommendations-npr-by-globo)
+* [NeMig](https://github.com/andreeaiana/nemig)
+* [MIND](https://msnews.github.io)
 
 ## Citation
 
