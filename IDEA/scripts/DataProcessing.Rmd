@@ -11,7 +11,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In this RMarkdown, data from a 2-week long field experiment with the Informfully platform is processed and analysed.
 
-The Document includes all relevant R code for transparency and reproducibility. It also reports scale reliability analyses for self-reported measures from an initial intake survey.
+The Document includes all relevant R code for transparency and reproducibility.
+
+It also reports scale reliability analyses for self-reported measures from an initial intake survey.
 
 # 1. Loading data and packages
 
