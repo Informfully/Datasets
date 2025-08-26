@@ -12,7 +12,8 @@ Informfully is an open-source reproducibility platform for content distribution 
 The Informfully Dataset with Enhanced Attributes (IDEA) for news articles.
 Recommendations consist of an open-source collection of user profiles, news articles with a high topic and outlet diversity, item recommendations, and rich user-item interactions from a field study on behavioral changes in news consumption.
 The records include both quantitative data from real-time session tracking as well as self-reported data from user surveys on satisfaction with news, knowledge
-acquisition, and personal background information. This paper outlines the data collection procedure and potential use cases of the dataset for designing normative recommender systems.
+acquisition, and personal background information.
+This paper outlines the data collection procedure and potential use cases of the dataset for designing normative recommender systems.
 It provides the
 documentation of all data collections, together with insights into the data quality.
 
@@ -20,7 +21,8 @@ Get access to the full paper here: [IDEA - Informfully Dataset with Enhanced Att
 
 ## Documentation
 
-* [IDEA – Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf) workshop paper.
+* [Nudges for News Recommenders](https://doi.org/10.1093/joc/jqaf019) journal paper based on this dataset.
+* [IDEA – Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf) workshop paper based on this dataset.
 * [Dataset codebook](https://github.com/Informfully/Datasets/blob/main/IDEA/Codebook.pdf) for the description of all attributes included in the dataset.
 * [Pre-processing scripts](https://github.com/Informfully/Datasets/tree/main/IDEA/scripts) used for creating the individual files shared in the dataset.
 * [Technical documentation](https://informfully.readthedocs.io/en/latest/database.html) of outlining all document collections from Informfully.
@@ -55,7 +57,7 @@ If you use any code or data from this repository in a scientific publication, we
 
 - [IDEA – Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf), Heitz *et al.*, Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems, 2024.
 
-  ```
+  ```tex
   @inproceedings{heitz2024idea,
     title={IDEA – Informfully Dataset with Enhanced Attributes},
     author={Heitz, Lucien and Mattis, Nicolas and Inel, Oana and van Atteveldt, Wouter},
@@ -66,7 +68,7 @@ If you use any code or data from this repository in a scientific publication, we
 
 - [Informfully - Research Platform for Reproducible User Studies](https://dl.acm.org/doi/10.1145/3640457.3688066), Heitz *et al.*, Proceedings of the 18th ACM Conference on Recommender Systems, 2024.
 
-  ```
+  ```tex
   @inproceedings{heitz2024informfully,
     title={Informfully - Research Platform for Reproducible User Studies},
     author={Heitz, Lucien and Croci, Julian A and Sachdeva, Madhav and Bernstein, Abraham},
