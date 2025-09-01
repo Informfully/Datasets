@@ -66,7 +66,7 @@ If you use any code or data from this repository in a scientific publication, we
   }
   ```
 
-- [Informfully - Research Platform for Reproducible User Studies](https://dl.acm.org/doi/10.1145/3640457.3688066), Heitz *et al.*, Proceedings of the 18th ACM Conference on Recommender Systems, 2024.
+- [Informfully - Research Platform for Reproducible User Studies](https://doi.org/10.1080/21670811.2021.2021804), Heitz *et al.*, Proceedings of the 18th ACM Conference on Recommender Systems, 2024.
 
   ```tex
   @inproceedings{heitz2024informfully,
