@@ -55,7 +55,7 @@ If you are looking for more news datasets, we recommend the following resources:
 
 If you use any code or data from this repository in a scientific publication, we ask you to cite the following papers:
 
-- [IDEA – Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf), Heitz *et al.*, Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems, 2024.
+* [IDEA – Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf), Heitz *et al.*, Proceedings of the Second Workshop on the Normative Design and Evaluation of Recommender Systems, 2024.
 
   ```tex
   @inproceedings{heitz2024idea,
@@ -66,7 +66,7 @@ If you use any code or data from this repository in a scientific publication, we
   }
   ```
 
-- [Informfully - Research Platform for Reproducible User Studies](https://doi.org/10.1080/21670811.2021.2021804), Heitz *et al.*, Proceedings of the 18th ACM Conference on Recommender Systems, 2024.
+* [Informfully - Research Platform for Reproducible User Studies](https://doi.org/10.1080/21670811.2021.2021804), Heitz *et al.*, Proceedings of the 18th ACM Conference on Recommender Systems, 2024.
 
   ```tex
   @inproceedings{heitz2024informfully,
@@ -83,9 +83,9 @@ If you use any code or data from this repository in a scientific publication, we
 You are welcome to contribute to the Informfully ecosystem and become a part of our community.
 Feel free to:
 
-- Fork any of the [Informfully repositories](https://github.com/Informfully/Documentation).
-- Suggest new features in [Future Release](https://github.com/orgs/Informfully/projects/1).
-- Make changes and create pull requests.
+* Fork any of the [Informfully repositories](https://github.com/Informfully/Documentation).
+* Suggest new features in [Future Release](https://github.com/orgs/Informfully/projects/1).
+* Make changes and create pull requests.
 
 Please post your feature requests and bug reports in our [GitHub issues](https://github.com/Informfully/Documentation/issues) section.
 
