@@ -45,11 +45,11 @@ Get access to the full paper here: [IDEA - Informfully Dataset with Enhanced Att
 
 If you are looking for more news datasets, we recommend the following resources:
 
-* [Adressa](https://reclab.idi.ntnu.no/dataset)
-* [EB-NeRD](https://recsys.eb.dk)
-* [Globo](https://www.kaggle.com/datasets/joelpl/news-portal-recommendations-npr-by-globo)
-* [NeMig](https://github.com/andreeaiana/nemig)
-* [MIND](https://msnews.github.io)
+* [Adressa](https://reclab.idi.ntnu.no/dataset) (Norway)
+* [EB-NeRD](https://recsys.eb.dk) (Denmark)
+* [Globo](https://www.kaggle.com/datasets/joelpl/news-portal-recommendations-npr-by-globo) (Brazil)
+* [NeMig](https://github.com/andreeaiana/nemig) (Germany)
+* [MIND](https://msnews.github.io) (US)
 
 ## Citation
 
@@ -66,7 +66,7 @@ If you use any code or data from this repository in a scientific publication, we
   }
   ```
 
-* [Informfully - Research Platform for Reproducible User Studies](https://doi.org/10.1080/21670811.2021.2021804), Heitz *et al.*, Proceedings of the 18th ACM Conference on Recommender Systems, 2024.
+* [Informfully - Research Platform for Reproducible User Studies](https://doi.org/10.1145/3640457.3688066), Heitz *et al.*, Proceedings of the 18th ACM Conference on Recommender Systems, 2024.
 
   ```tex
   @inproceedings{heitz2024informfully,
@@ -74,7 +74,23 @@ If you use any code or data from this repository in a scientific publication, we
     author={Heitz, Lucien and Croci, Julian A and Sachdeva, Madhav and Bernstein, Abraham},
     booktitle={Proceedings of the 18th ACM Conference on Recommender Systems},
     pages={660--669},
-    year={2024}
+    year={2024},
+    publisher={ACM New York, NY, USA},
+    url={https://doi.org/10.1145/3640457.3688066}
+  }
+  ```
+
+* [Informfully Recommenders – Reproducibility Framework for Diversity-aware Intra-session Recommendations](https://doi.org/10.1145/3705328.3748148), Heitz *et al.*, Proceedings of the 19th ACM Conference on Recommender Systems, 2024.
+
+  ```tex
+  @inproceedings{heitz2025recommenders,
+    title={Informfully Recommenders – Reproducibility Framework for Diversity-aware Intra-session Recommendations},
+    author={Heitz, Lucien and Li, Runze and Inel, Oana and Bernstein, Abraham},
+    booktitle={Proceedings of the 19th ACM Conference on Recommender Systems},
+    pages={792--801},
+    year={2025},
+    publisher={ACM New York, NY, USA},
+    url={https://doi.org/10.1145/3705328.3748148}
   }
   ```
 
