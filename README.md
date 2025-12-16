@@ -62,8 +62,6 @@ If you use any code or data from this repository in a scientific publication, we
     title={Nudges for News Recommenders: Prominent Article Positioning Increases Selection, Engagement, and Recall of Environmental News, but Reducing Complexity Does Not},
     author={Mattis, Nicolas and Heitz, Lucien and Masur, Philipp K and Moeller, Judith and van Atteveldt, Wouter},
     journal={Journal of Communication},
-    volume={},
-    number={},
     pages={jqaf019},
     year={2025},
     publisher={Oxford University Press, UK},
