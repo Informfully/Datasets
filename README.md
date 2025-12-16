@@ -10,14 +10,14 @@ Informfully is an open-source reproducibility platform for content distribution 
 ## Overview
 
 The Informfully Dataset with Enhanced Attributes (IDEA) for news articles.
-Recommendations consist of an open-source collection of user profiles, news articles with a high topic and outlet diversity, item recommendations, and rich user-item interactions from a field study on behavioral changes in news consumption.
+Recommendations comprise an open-source collection of user profiles, news articles with high topic and outlet diversity, item recommendations, and rich user-item interactions from a field study on behavioral changes in news consumption.
 The records include both quantitative data from real-time session tracking as well as self-reported data from user surveys on satisfaction with news, knowledge
 acquisition, and personal background information.
+
 This paper outlines the data collection procedure and potential use cases of the dataset for designing normative recommender systems.
 It provides the
 documentation of all data collections, together with insights into the data quality.
-
-Get access to the full paper here: [IDEA - Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf)
+You can download the full paper here: [IDEA - Informfully Dataset with Enhanced Attributes](https://ceur-ws.org/Vol-3898/paper1.pdf)
 
 ## Documentation
 
